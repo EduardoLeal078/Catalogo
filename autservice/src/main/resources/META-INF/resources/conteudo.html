@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conteúdo</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .content {
+            margin-top: 20px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 30px;
+            right: 10px;
+        }
+        .update-btn {
+            position: absolute;
+            right: 10px;
+            top: 100px;
+        }
+
+        .navbar {
+            background-color: #7d3f60 !important;
+        }
+
+        .Color {
+            color: white !important;
+        }
+
+        .botaopersonalizado {
+            border-radius: 20px !important;
+            background-color: blueviolet;
+        }
+
+        .centralizar {
+            padding-top: 20px;
+            padding-left: 2%;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand Color" href="#">D.I.Y</a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <button class="btn Color mr-2 botaopersonalizado" onclick="window.location.href='index.html'">Sair</button>
+            <p id="displayField" class="navbar-text Color centralizar"></p>
+        </div>
+    </nav>
+
+    <div class="container content">
+        <div class="text-center mb-4">
+            <button class="btn botaopersonalizado Color" id="addContentBtn">Adicionar Conteúdo</button>
+        </div>
+        <div id="contentContainer">
+            <!-- Requisição Listar Mostra Aqui -->
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModalLabel">Atualizar Conteúdo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm">
+                        <div class="form-group">
+                            <label for="updateTitle">Título</label>
+                            <input type="text" class="form-control" id="updateTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateDescription">Descrição</label>
+                            <textarea class="form-control" id="updateDescription" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateType">Tipo</label>
+                            <input type="text" class="form-control" id="updateType" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateDate">Data de Criação</label>
+                            <textarea type="text" class="form-control" id="updateDate" required></textarea>
+                        </div>
+                        <input type="hidden" id="updateId">
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function displayValue() {
+            var value = localStorage.getItem('username');
+            if (value) {
+                document.getElementById('displayField').textContent = value.toUpperCase();
+            }
+        }
+
+        function fetchContent() {
+            console.log('Fetching content from API...');
+            fetch('http://localhost:8082/conteudo/listar')
+                .then(response => {
+                    console.log('Response received:', response);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data fetched from API:', data);
+                    const container = document.getElementById('contentContainer');
+                    container.innerHTML = '';
+                    data.forEach(item => {
+                        const contentDiv = document.createElement('div');
+                        contentDiv.classList.add('card', 'mb-3');
+                        contentDiv.style.position = 'relative';
+                        contentDiv.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">${item.title}</h5>
+                                <p class="card-text">Descrição: ${item.description}</p>
+                                <p class="card-text">Tipo: ${item.contType}</p>
+                                <p class="card-text">Data de Criação: ${item.contData}</p>
+                                <button class="btn btn-danger btn-sm delete-btn" data-id="${item.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm update-btn" data-id="${item.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(contentDiv);
+                    });
+
+                    // Botão de Apagar
+                    document.querySelectorAll('.delete-btn').forEach(button => {
+                        button.addEventListener('click', function () {
+                            const id = this.getAttribute('data-id');
+                            deleteContent(id);
+                        });
+                    });
+
+                    // Botão de Atualizar
+                    document.querySelectorAll('.update-btn').forEach(button => {
+                        button.addEventListener('click', function () {
+                            const id = this.getAttribute('data-id');
+                            openUpdateModal(id);
+                        });
+                    });
+                })
+                .catch(error => console.error('Erro ao buscar conteúdo:', error));
+        }
+
+        function deleteContent(id) {
+            console.log('Deleting content with ID:', id);
+            fetch(`http://localhost:8082/conteudo/deletar/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    console.log('Content deleted successfully');
+                    fetchContent();
+                })
+                .catch(error => console.error('Erro ao deletar conteúdo:', error));
+        }
+
+        function openUpdateModal(id) {
+            console.log('Opening update modal for content with ID:', id);
+            fetch(`http://localhost:8082/conteudo/${id}`, {
+                method: 'GET',
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('updateId').value = data.id;
+                    document.getElementById('updateTitle').value = data.title;
+                    document.getElementById('updateDescription').value = data.description;
+                    document.getElementById('updateType').value = data.contType;
+                    document.getElementById('updateDate').value = data.contData;
+                    $('#updateModal').modal('show');
+                })
+                .catch(error => console.error('Erro ao buscar conteúdo para atualização:', error));
+        }
+
+        document.getElementById('updateForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const id = document.getElementById('updateId').value;
+            const updatedContent = {
+                title: document.getElementById('updateTitle').value,
+                description: document.getElementById('updateDescription').value,
+                contType: document.getElementById('updateType').value,
+                contData: document.getElementById('updateDate').value
+            };
+            fetch(`http://localhost:8082/conteudo/atualizar/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedContent),
+                credentials: 'include'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    console.log('Content updated successfully');
+                    $('#updateModal').modal('hide');
+                    fetchContent();
+                })
+                .catch(error => console.error('Erro ao atualizar conteúdo:', error));
+        });
+
+        window.onload = function () {
+            displayValue();
+            fetchContent();
+
+            document.getElementById('addContentBtn').addEventListener('click', function () {
+                window.location.href = 'adicionar.html';
+            });
+        };
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<style>
+    .full-height {
+        height: 100vh;
+    }
+
+    .form-container {
+        position: relative;
+        width: 100%;
+        padding-left: 40%;
+        padding-right: 40%;
+    }
+
+    .purple-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #5dd55d;
+        z-index: -1;
+    }
+    .Color{
+        color: white !important;
+    }
+</style>
+
+<body>
+    <div class="d-flex justify-content-center align-items-center full-height w-100">
+        <div class="form-container">
+            <div class="purple-line"></div>
+            <h2 class="mt-5 text-center Color">Registrar</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Digite Seu Nome" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Digite uma Senha" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="acessLv" name="acessLv" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Registrar</button>
+                <div id="message" class="text-center mt-3"></div>
+                <br><br>
+            </form>
+            <div id="message" class="text-center mt-3"></div>
+        </div>
+    </div>
+
+        <script>
+            document.getElementById('registerForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const formData = new FormData(this);
+                fetch('/autenticar/registrar', {
+                    method: 'POST',
+                    body: new URLSearchParams(formData),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao registrar usuário: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const messageDiv = document.getElementById('message');
+                        if (data.success) {
+                            messageDiv.innerHTML = '<p style="color: green;">Usuário registrado com sucesso!</p>';
+                            window.location.href = 'index.html';
+                        } else {
+                            messageDiv.innerHTML = '<p style="color: red;">Falha ao registrar usuário: ' + (data.message || 'Erro desconhecido') + '</p>';
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('message').innerHTML = '<p style="color: red;">Falha ao registrar usuário: ' + error.message + '</p>';
+                    });
+            });
+        </script>
+
+</body>
+
+</html>

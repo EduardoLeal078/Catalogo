@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .full-height {
+            height: 100vh;
+        }
+        .form-container {
+            position: relative;
+            width: 100%;
+            padding-left: 40%;
+            padding-right: 40%;
+
+        }
+        #inicial {
+            color: white;
+            margin-bottom: 15%;
+        }
+        .purple-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #5dd55d;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex justify-content-center align-items-center full-height w-100">
+        <div class="form-container">
+            <div class="purple-line"></div>
+            <h1 class="mt-5 text-center" id="inicial">Bem-Vindo</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="name" placeholder="Digite seu nome de usuário" name="name" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" id="password" placeholder="Digite sua senha" name="password" required>
+                </div>
+                <br><br>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                <a href="register.html" class="btn btn-primary btn-block">Registrar Novo Usuário</a>
+                <div id="message" class="text-center mt-3"></div>
+                <br><br>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <script>
+
+        function clearLocalStorage() {
+            localStorage.removeItem('username');
+        }
+
+        window.onload = function() {
+            clearLocalStorage();
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const username = formData.get('name');
+
+            fetch('/autenticar/logar', {
+                method: 'POST',
+                body: new URLSearchParams(formData),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('message');
+                if (data.success) {
+                    messageDiv.innerHTML = '<p style="color: green;">Usuário autenticado com sucesso!</p>';
+                    localStorage.setItem('username', username); // Armazena o nome de usuário no localStorage
+                    window.location.href = 'http://localhost:8081/conteudo.html';
+                } else {
+                    messageDiv.innerHTML = '<p style="color: red;">Falha na autenticação do usuário.</p>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('message').innerHTML = '<p style="color: red;">Erro ao autenticar usuário: ' + error.message + '</p>';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Conteúdo</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .form-card {
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container form-container">
+        <div class="card form-card">
+            <div class="card-body">
+                <h5 class="card-title text-center">Adicionar Conteúdo</h5>
+                <form id="addContentForm">
+                    <div class="form-group">
+                        <label for="title">Título</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Descrição</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="contType">Tipo</label>
+                        <input type="text" class="form-control" id="contType" name="contType" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contData">Data</label>
+                        <textarea class="form-control" id="contData" name="contData" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Adicionar</button>
+                </form>
+                <div id="message" class="text-center mt-3"></div>
+                <script>
+                    document.getElementById('addContentForm').addEventListener('submit', function(event) {
+                        event.preventDefault(); 
+            
+                        const formData = new FormData(this);
+                        fetch('http://localhost:8082/conteudo/adicionar', {
+                            method: 'POST',
+                            body: new URLSearchParams(formData),
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        }).then(response => {
+                            if (!response.ok) {
+                                throw new Error('Erro ao adicionar conteúdo');
+                            }
+                            return response.text();
+                        }).then(text => {
+                            const messageDiv = document.getElementById('message');
+                            if (text.trim() === "") {
+                                
+                                messageDiv.innerHTML = '<p style="color: green;">Conteúdo adicionado com sucesso!</p>';
+                                window.location.href = 'http://localhost:8081/conteudo.html';
+                            } else {
+                                try {
+                                    const data = JSON.parse(text);
+                                    if (data.success) {
+                                        messageDiv.innerHTML = '<p style="color: green;">Conteúdo adicionado com sucesso!</p>';
+                                        window.location.href = 'http://localhost:8081/conteudo.html';
+                                    } else {
+                                        messageDiv.innerHTML = '<p style="color: red;">Falha ao adicionar conteúdo.</p>';
+                                    }
+                                } catch (error) {
+                                    throw new Error('Resposta JSON inválida');
+                                }
+                            }
+                        }).catch(error => {
+                            document.getElementById('message').innerHTML = '<p style="color: red;">Erro ao adicionar conteúdo: ' + error.message + '</p>';
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
