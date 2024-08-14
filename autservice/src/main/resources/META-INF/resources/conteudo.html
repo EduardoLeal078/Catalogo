@@ -137,6 +137,14 @@
                                 </button>
                             </div>
                         `;
+                        contentDiv.querySelector('.card-body').addEventListener('click',()=>{
+                            localStorage.setItem('contId', item.id);
+                            localStorage.setItem('contTitle', item.title);
+                            localStorage.setItem('contDesc', item.description);
+                            localStorage.setItem('contType', item.contType);
+                            window.location.href = 'criarconteudo.html';
+
+                        });
                         container.appendChild(contentDiv);
                     });
 
